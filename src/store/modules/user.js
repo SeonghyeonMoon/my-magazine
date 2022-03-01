@@ -1,17 +1,41 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { apis } from '../../api';
+
+export const signupUserDB = createAsyncThunk(
+	'user/signup',
+	async (data, thunkAPI) => {
+		try {
+			console.log(data);
+			await apis.signup(data);
+			return;
+		} catch (err) {
+			alert(err);
+			return thunkAPI.rejectWithValue(err.response.message);
+		}
+	}
+);
 
 export const loginUser = createAsyncThunk(
 	'user/login',
 	async (loginData, thunkAPI) => {
 		try {
-			const response = await axios.post('http://52.78.200.34/api/login', {
-				id: loginData.id,
-				password: loginData.password,
-			});
-			console.log('로그인', response);
-			localStorage.setItem('token', response.data.token);
+			const response = await apis.login(loginData);
+			sessionStorage.setItem('token', response.data.token);
 			return true;
+		} catch (err) {
+			alert(err);
+			return thunkAPI.rejectWithValue(err.response.message);
+		}
+	}
+);
+
+// 동기 함수로 변경
+export const logoutUser = createAsyncThunk(
+	'user/logout',
+	async (_, thunkAPI) => {
+		try {
+			sessionStorage.removeItem('token');
+			return;
 		} catch (err) {
 			alert(err);
 			return thunkAPI.rejectWithValue(err.response.message);
@@ -21,11 +45,7 @@ export const loginUser = createAsyncThunk(
 
 export const loadUser = createAsyncThunk('user/load', async (_, thunkAPI) => {
 	try {
-		const token = localStorage.getItem('token');
-		const response = await axios.get('http://52.78.200.34/api/me', {
-			headers: { token },
-		});
-		console.log('정보 가져오기', response);
+		const response = await apis.me();
 		const userData = {
 			id: response.data.id,
 			nickname: response.data.nickname,
@@ -33,6 +53,7 @@ export const loadUser = createAsyncThunk('user/load', async (_, thunkAPI) => {
 		};
 		return userData;
 	} catch (err) {
+		console.log(err);
 		alert(err);
 		return thunkAPI.rejectWithValue(err.response.message);
 	}
@@ -46,6 +67,15 @@ const user = createSlice({
 		profileUrl: '',
 	},
 	extraReducers: {
+		[signupUserDB.pending]: (state, action) => {
+			state.isLoading = true;
+		},
+		[signupUserDB.fulfilled]: (state, action) => {
+			state.isLoading = false;
+		},
+		[signupUserDB.rejected]: (state, action) => {
+			state.isLoading = false;
+		},
 		[loginUser.pending]: (state, action) => {
 			state.isLoading = true;
 		},
@@ -53,6 +83,18 @@ const user = createSlice({
 			state.isLoading = false;
 		},
 		[loginUser.rejected]: (state, action) => {
+			state.isLoading = false;
+		},
+		[logoutUser.pending]: (state, action) => {
+			state.isLoading = true;
+		},
+		[logoutUser.fulfilled]: (state, action) => {
+			state.isLoading = false;
+			state.isLogin = false;
+			state.nickname = '';
+			state.profileUrl = '';
+		},
+		[logoutUser.rejected]: (state, action) => {
 			state.isLoading = false;
 		},
 		[loadUser.pending]: (state, action) => {
