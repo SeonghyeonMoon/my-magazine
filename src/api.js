@@ -10,7 +10,7 @@ import axios from 'axios';
 // baseURL: "http://xpecter.shop",
 
 const api = axios.create({
-	baseURL: 'http://52.78.200.34',
+	baseURL: 'http://xpecter.shop',
 	headers: {
 		'content-type': 'application/json;charset=UTF-8',
 		Accept: 'application/json',

@@ -34,9 +34,8 @@ const PostList = () => {
 
 	return (
 		<Container>
-			{postsData.posts
-				? postsData.posts.map(post => <Post {...post} key={post.id} />)
-				: null}
+			{postsData.posts &&
+				postsData.posts.map(post => <Post {...post} key={post.id} />)}
 			{postsData.isLast ? null : <LoadBox ref={lastBox} />}
 		</Container>
 	);
